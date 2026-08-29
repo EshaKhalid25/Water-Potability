@@ -184,7 +184,7 @@ Water-Potability/
 │   ├── eda.py
 │   ├── train.py
 │   ├── model_comparison.csv
-│   └── README.md (if present in some variants)
+│   └── README.md 
 │
 ├── backend/
 │   ├── model/
