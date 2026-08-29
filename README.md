@@ -17,12 +17,12 @@ An end-to-end machine learning pipeline and web application that predicts whethe
 *   **Step 1: Install Dependencies**  
     Create a Python virtual environment and install the required ML and API libraries by running `pip install pandas scikit-learn joblib fastapi uvicorn`.
 *   **Step 2: Train the Model**  
-    Navigate to the `ml/` directory and execute `python train.py`. This reads the dataset, trains 100 decision trees, and exports the `water_model.pkl` file.
+    Navigate to the `machineLearning/` directory and execute `python train.py`. This reads the dataset, trains 100 decision trees, and exports the `water_model.pkl` file.
 *   **Step 3: Start the Backend**  
     Navigate to the `backend/` directory and execute `uvicorn main:app --reload`. The API will be live at `http://127.0.0.1:8000`.
 *   **Step 4: Launch the Frontend**  
     Open a new terminal, navigate to the `frontend/` directory, run `npm install`, and then execute `npm run dev` to launch the React user interface.
 
-## 🌐 Live Demo
+## Live Demo
 * **Frontend App (Netlify):** [View Live Application](https://water-potability-kweg.netlify.app/)
 * **Backend API Docs (Render):** [Explore API Endpoints (/docs)](https://water-potability-kweg.onrender.com/docs)
