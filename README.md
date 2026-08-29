@@ -22,3 +22,7 @@ An end-to-end machine learning pipeline and web application that predicts whethe
     Navigate to the `backend/` directory and execute `uvicorn main:app --reload`. The API will be live at `http://127.0.0.1:8000`.
 *   **Step 4: Launch the Frontend**  
     Open a new terminal, navigate to the `frontend/` directory, run `npm install`, and then execute `npm run dev` to launch the React user interface.
+
+## 🌐 Live Demo
+* **Frontend App (Netlify):** [View Live Application](https://water-potability-kweg.netlify.app/)
+* **Backend API Docs (Render):** [Explore API Endpoints (/docs)](https://water-potability-kweg.onrender.com/docs)
