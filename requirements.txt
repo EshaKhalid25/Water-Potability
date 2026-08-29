@@ -3,3 +3,7 @@ uvicorn
 scikit-learn
 pandas
 joblib
+xgboost
+shap
+matplotlib
+seaborn

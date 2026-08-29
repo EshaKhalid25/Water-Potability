@@ -1,6 +1,9 @@
 import { useState } from 'react'
 
-// 1. Define strict limits based on your actual machine learning dataset
+// ============================================================
+// FIELD LIMITS
+// ============================================================
+
 const FIELD_LIMITS = {
   ph: { min: 0, max: 14 },
   Hardness: { min: 45, max: 325 },
@@ -11,9 +14,15 @@ const FIELD_LIMITS = {
   Organic_carbon: { min: 2, max: 29 },
   Trihalomethanes: { min: 0.7, max: 125 },
   Turbidity: { min: 1.4, max: 6.8 }
-};
+}
+
+
+// ============================================================
+// APP
+// ============================================================
 
 function App() {
+
   const [formData, setFormData] = useState({
     ph: '',
     Hardness: '',
@@ -25,87 +34,352 @@ function App() {
     Trihalomethanes: '',
     Turbidity: ''
   })
+
   const [result, setResult] = useState(null)
+
   const [loading, setLoading] = useState(false)
 
+  const [error, setError] = useState(null)
+
+
+  // ==========================================================
+  // HANDLE INPUT
+  // ==========================================================
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+
+    const { name, value } = e.target
+
+    setFormData({
+      ...formData,
+      [name]: value
+    })
   }
+
+
+  // ==========================================================
+  // HANDLE SUBMIT
+  // ==========================================================
 
   const handleSubmit = async (e) => {
+
     e.preventDefault()
+
     setLoading(true)
 
-    // Convert values to numbers for the API
+    setError(null)
+
+    setResult(null)
+
+
+    // --------------------------------------------------------
+    // Convert strings → numbers
+    // --------------------------------------------------------
+
     const payload = {}
-    for (let key in formData) {
-      payload[key] = parseFloat(formData[key])
+
+    for (const key in formData) {
+
+      payload[key] = parseFloat(
+        formData[key]
+      )
     }
+
 
     try {
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
-      const response = await fetch(`${API_URL}/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const data = await response.json()
+      const API_URL =
+        import.meta.env.VITE_API_BASE_URL ||
+        'http://127.0.0.1:8000'
+
+
+      // ------------------------------------------------------
+      // API REQUEST
+      // ------------------------------------------------------
+
+      const response = await fetch(
+        `${API_URL}/predict`,
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify(payload)
+        }
+      )
+
+
+      // ------------------------------------------------------
+      // Handle API errors
+      // ------------------------------------------------------
+
+      if (!response.ok) {
+
+        const errorData =
+          await response.json()
+
+        throw new Error(
+          errorData.detail ||
+          'Prediction failed'
+        )
+      }
+
+
+      // ------------------------------------------------------
+      // Read response
+      // ------------------------------------------------------
+
+      const data =
+        await response.json()
+
+
       setResult(data)
+
     } catch (error) {
-      console.error("Error connecting to API:", error)
+
+      console.error(
+        'Error connecting to API:',
+        error
+      )
+
+      setError(
+        'Unable to connect to the prediction server.'
+      )
+
+    } finally {
+
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  // Helper function to format the label text for the UI
+
+  // ==========================================================
+  // FORMAT LABEL
+  // ==========================================================
+
   const formatLabel = (key) => {
-    if (key === 'ph') return 'pH';
-    return key.replace('_', ' '); // Replaces the underscore with a space
+
+    if (key === 'ph') {
+      return 'pH'
+    }
+
+    return key.replace('_', ' ')
   }
+
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
+
     <div className="container">
-      <h1>💧 Water Potability Predictor</h1>
-      
+
+      <h1>
+        💧 Water Potability Predictor
+      </h1>
+
+
+      {/* =====================================================
+          FORM
+          ===================================================== */}
+
       <form onSubmit={handleSubmit}>
+
         <div className="form-grid">
+
           {Object.keys(formData).map((key) => (
-            <div className="input-group" key={key}>
+
+            <div
+              className="input-group"
+              key={key}
+            >
+
               <label>
-                {/* Use the helper function here to clean up the display text */}
-                {formatLabel(key)} <span style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>
-                  ({FIELD_LIMITS[key].min} - {FIELD_LIMITS[key].max})
+
+                {formatLabel(key)}
+
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#7f8c8d'
+                  }}
+                >
+
+                  {' '}
+                  ({FIELD_LIMITS[key].min} -{' '}
+                  {FIELD_LIMITS[key].max})
+
                 </span>
+
               </label>
-              <input 
-                type="number" 
-                step="any" 
-                name={key} 
-                value={formData[key]} 
-                onChange={handleChange} 
+
+
+              <input
+                type="number"
+                step="any"
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
                 min={FIELD_LIMITS[key].min}
                 max={FIELD_LIMITS[key].max}
-                required 
+                required
               />
+
             </div>
+
           ))}
+
         </div>
-        <button type="submit" className="btn" disabled={loading}>
-          {loading ? "Predicting..." : "Predict Water Quality"}
+
+
+        <button
+          type="submit"
+          className="btn"
+          disabled={loading}
+        >
+
+          {loading
+            ? 'Predicting...'
+            : 'Predict Water Quality'}
+
         </button>
+
       </form>
 
-      {result && (
-        <div className="result-card">
-          <h2 className={result.prediction === 1 ? 'potable' : 'not-potable'}>
-            {result.prediction === 1 ? '✓ POTABLE' : '✕ NOT POTABLE'}
-          </h2>
-          <p>Model Confidence: <strong>{Math.round(result.confidence * 100)}%</strong></p>
+
+      {/* =====================================================
+          ERROR
+          ===================================================== */}
+
+      {error && (
+
+        <div className="error-card">
+
+          <p>
+            ⚠️ {error}
+          </p>
+
         </div>
+
       )}
+
+
+      {/* =====================================================
+          RESULT
+          ===================================================== */}
+
+      {result && (
+
+        <div className="result-card">
+
+
+          {/* -------------------------------------------------
+              PREDICTION
+              ------------------------------------------------- */}
+
+          <h2
+            className={
+              result.prediction === 1
+                ? 'potable'
+                : 'not-potable'
+            }
+          >
+
+            {result.prediction === 1
+              ? '✓ POTABLE'
+              : '✕ NOT POTABLE'}
+
+          </h2>
+
+
+          {/* -------------------------------------------------
+              CONFIDENCE
+              ------------------------------------------------- */}
+
+          <p>
+
+            Model Confidence:{' '}
+
+            <strong>
+              {result.confidence_percentage}%
+            </strong>
+
+          </p>
+
+
+          {/* =================================================
+              SHAP EXPLANATION
+              ================================================= */}
+
+          {result.explanation &&
+            result.explanation.length > 0 && (
+
+              <div className="explanation">
+
+                <h3>
+                  Why did the model make this prediction?
+                </h3>
+
+
+                <div className="explanation-list">
+
+                  {result.explanation.map(
+                    (item, index) => (
+
+                      <div
+                        className="explanation-item"
+                        key={index}
+                      >
+
+                        <div>
+
+                          <strong>
+                            {formatLabel(item.feature)}
+                          </strong>
+
+                          <span>
+                            {' '}
+                            {item.direction === 'positive'
+                              ? '↑'
+                              : '↓'}
+                          </span>
+
+                        </div>
+
+
+                        <span>
+
+                          Impact:{' '}
+
+                          {item.impact > 0
+                            ? '+'
+                            : ''}
+
+                          {item.impact}
+
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            )}
+
+        </div>
+
+      )}
+
     </div>
   )
 }
+
 
 export default App
